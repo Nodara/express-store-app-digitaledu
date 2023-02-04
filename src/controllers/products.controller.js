@@ -16,10 +16,12 @@ const findProducts = async (req, res) => {
 
 
 const createProduct = async (req, res) => {
-  const { title, amount, price } = req.body;
+  const { title, amount, price, expirationDate } = req.body;
+
+  const { userId } = req.user;
 
   const result = await productsService.createProduct({
-    title, amount, price
+    title, amount, price, expirationDate, userId, 
   });
 
   return res.json({

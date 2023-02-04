@@ -7,7 +7,9 @@ const findProducts = () => Product.findAll();
 const createProduct = async ({
   title,
   amount,
-  price
+  price,
+  expirationDate,
+  userId,
 }) => {
 
   if (!title || !amount || !price) throw new Error();
@@ -26,7 +28,9 @@ const createProduct = async ({
   await Product.create({
     title,
     amount,
-    price
+    price,
+    userId,
+    expirationDate,
   });
 
   return 'CREATED';

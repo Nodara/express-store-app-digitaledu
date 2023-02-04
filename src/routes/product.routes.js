@@ -1,4 +1,4 @@
-const { findProductById, findProducts, updateProduct, deleteProduct } = require('../controllers/products.controller');
+const { findProductById, findProducts, updateProduct, deleteProduct, createProduct } = require('../controllers/products.controller');
 
 const router = require('express').Router();
 
@@ -9,7 +9,7 @@ router.get('/:productId', findProductById);
 router.get('/', findProducts);
 
 // POST: api/products/ 
-router.post('/',);
+router.post('/', createProduct);
 
 // PUT: api/products/1
 router.put('/:productId', updateProduct);
