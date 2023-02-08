@@ -20,6 +20,8 @@ const checkUser = async ({ email, password }) => {
     }
     );
 
+    console.log('token is  ', token);
+
     return token;
   }
 

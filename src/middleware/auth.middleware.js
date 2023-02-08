@@ -1,26 +1,33 @@
 const jwt = require('jsonwebtoken');
+const { UnauthorizedException } = require('../error/exceptions');
 
 const checkAuth = async (req, res, next) => {
-  let token = req.headers['authorization'];
+  try { 
+    let token = req.headers['authorization'];
 
+    if(!token) throw new UnauthorizedException('user is not authenticated');
+  
+    token = token.split(' ')[1];
 
-  if(!token) throw new Error('unauthorized');
+  
+    let decodedToken;
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      console.log(err, decoded);
+      if(err) {
+        throw new UnauthorizedException('user is not authenticated');
+      }
+      decodedToken = decoded;
+    });
+  
+    req.user = {
+      userId: decodedToken.userId
+    };
 
-  token = token.split(' ')[1];
+    next();
 
-  let decodedToken;
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if(err) {
-      throw new Error('unauthorized');
-    }
-    decodedToken = decoded;
-  });
-
-  req.user = {
-    userId: decodedToken.userId
-  };
-
-  next();
+  } catch(e){
+    next(e);
+  }
 }; 
 
 module.exports = { checkAuth };

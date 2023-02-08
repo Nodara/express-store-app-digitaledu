@@ -1,5 +1,9 @@
 const Product = require('../database/product.model');
 
+const Log = require('../mongoDb/schemas/log.schema');
+
+const { BadRequestException } = require('../error/exceptions');
+
 const findProductById = (productId) => Product.findByPk(productId);
 
 const findProducts = () => Product.findAll();
@@ -12,10 +16,9 @@ const createProduct = async ({
   userId,
 }) => {
 
-  if (!title || !amount || !price) throw new Error();
+  if (!title || !amount || !price) throw new BadRequestException('all field are required');
 
-  if (price < 0) throw new Error();
-
+  if (price < 0) throw new BadRequestException('price must not be less than 0');
 
   const productInDb = await Product.findOne({
     where: {
@@ -23,7 +26,7 @@ const createProduct = async ({
     }
   });
 
-  if (productInDb) throw new Error();
+  if (productInDb) throw new BadRequestException('product already exist');
 
   await Product.create({
     title,
@@ -38,23 +41,12 @@ const createProduct = async ({
 
 
 const updateProduct = async ({
-  id, title, amount, price
+  id, title, amount, price,  userId,
 }) => {
-
   const product = await Product.findByPk(id);
 
+  // TODO: notfound
   if (!product) throw new Error();
-
-  // 1
-  // product.title = title;
-  // product.amount = amount;
-  // product.price = price;
-
-
-  // await product.save();
-
-
-  // 2
 
   await Product.update({
     title, amount, price
@@ -64,20 +56,58 @@ const updateProduct = async ({
     }
   });
 
+  if(product.title !== title) {
+    const log = new Log({
+      actionType: 'updated',
+      changedField: 'title',
+      previousValue: product.title,
+      currentValue: title,
+      userId
+    });
+    await log.save();
+  }
+
+  if(product.price !== price) {
+    const log = new Log({
+      actionType: 'updated',
+      changedField: 'title',
+      previousValue: product.title,
+      currentValue: title,
+      userId
+    });
+    await log.save();
+  }
+
+
+
   return 'UPDATED';
 };
 
 
-const deleteProduct = async (productId) => {
-  const product = await Product.findByPk(productId);
+const deleteProduct = async ({productId, userId }) => {
+  // const product = await Product.findByPk(productId);
 
-  if (!product) throw new Error();
+  const product = await Product.create({
+    title: 'test',
+    price: 1234,
+    expirationDate: new Date(),
+    userId: 5
+  });
+
+  // if (!product || product.userId !== userId ) throw new NotFoundException('product not found');
 
   await Product.destroy({
     where: {
-      id: productId
+      id: product.id
     }
   });
+
+  const logAboutDelete = new Log({
+    actionType: 'deleted',
+    userId,
+  });
+
+  await logAboutDelete.save();
 
   return 'DELETED';
 };
